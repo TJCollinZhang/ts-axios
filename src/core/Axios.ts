@@ -1,9 +1,22 @@
-import { AxiosPromise, AxiosRequestConfig, Method } from '../types'
+import { AxiosPromise, AxiosRequestConfig, Method, Axios as AxiosInterface } from '../types'
 import dispatchRequest from './dispatchRequest'
 
-export default class Axios {
-  request(config: AxiosRequestConfig): AxiosPromise {
-    return dispatchRequest(config)
+export default class Axios implements AxiosInterface {
+  // 重载request方法，被重载的原因参考src/axios.ts
+  // 根据文档，Axios.request方法调用时只能传入config参数，
+  // 因此request方法的实现需要兼容AxiosInterface类型定义，但不能和定义完全一致
+  request(config: AxiosRequestConfig): AxiosPromise
+  request(url: string, config?: AxiosRequestConfig): AxiosPromise
+  request(url: any, config?: AxiosRequestConfig): AxiosPromise {
+    if (typeof url === 'string') {
+      if (!config) {
+        config = {}
+      }
+      config.url = url
+    } else {
+      config = url
+    }
+    return dispatchRequest(config!)
   }
 
   get(url: string, config?: AxiosRequestConfig): AxiosPromise {
