@@ -24,8 +24,8 @@ export interface AxiosRequestConfig {
   timeout?: number | null
 }
 
-export interface AxiosResponse {
-  data: any
+export interface AxiosResponse<T = any> {
+  data: T
   status: number
   statusText: string
   headers: any
@@ -35,7 +35,7 @@ export interface AxiosResponse {
 
 // 之所以让AxiosPromise继承Promise是因为后面如果返回的是此类型数据，能调用then
 // promise泛型中给的AxiosResponse意味着onfulfilled返回的类型为AxiosResponse
-export interface AxiosPromise extends Promise<AxiosResponse> {}
+export interface AxiosPromise<T = any> extends Promise<AxiosResponse<T>> {}
 
 export interface AxiosError extends Error {
   // 暂时没弄懂这个参数的用处
@@ -60,21 +60,21 @@ export interface AxiosError extends Error {
 // 混合类型最典型的应用是一个对象可以同时做为函数和对象使用，并带有额外的属性。
 // 完美符合当前使用环境，因此除了类类型，需要再创建一个函数类型
 export interface Axios {
-  request(config: AxiosRequestConfig): AxiosPromise
+  request<T = any>(config: AxiosRequestConfig): AxiosPromise<T>
 
-  get(url: string, config?: AxiosRequestConfig): AxiosPromise
+  get<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 
-  delete(url: string, config?: AxiosRequestConfig): AxiosPromise
+  delete<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 
-  head(url: string, config?: AxiosRequestConfig): AxiosPromise
+  head<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 
-  options(url: string, config?: AxiosRequestConfig): AxiosPromise
+  options<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 
-  post(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise
+  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>
 
-  put(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise
+  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>
 
-  patch(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise
+  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>
 }
 
 // 函数类型，使用时与上面的类类型进行混合
@@ -83,6 +83,6 @@ export interface Axios {
 // 根据Axios文档中Axios作为函数时可以接受两种调用调用方法,所以需要重载request函数
 // Axios(config) Axios(url[, config])
 export interface AxiosInstance extends Axios {
-  (config: AxiosRequestConfig): AxiosPromise
-  (url: string, config?: AxiosRequestConfig): AxiosPromise
+  <T = any>(config: AxiosRequestConfig): AxiosPromise<T>
+  <T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 }
