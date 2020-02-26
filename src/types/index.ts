@@ -22,6 +22,18 @@ export interface AxiosRequestConfig {
   headers?: any
   responseType?: XMLHttpRequestResponseType
   timeout?: number | null
+  cancelToken?: CancelToken
+  withCredentials?: boolean
+
+  // xsrf cookie配置
+  xsrfHeaderName?: string
+  xsrfCookieName?: string
+
+  transformRequest?: AxiosTransformer | AxiosTransformer[]
+  transformResponse?: AxiosTransformer | AxiosTransformer[]
+  // 如果没有这个字符串索引签名，则无法采取属性变量方式获取属性值
+  // 例如： let a: string = "url" config[a]则报错， config['url']没问题
+  [propName: string]: any
 }
 
 export interface AxiosResponse<T = any> {
@@ -61,7 +73,11 @@ export interface AxiosError extends Error {
 // 完美符合当前使用环境，因此除了类类型，需要再创建一个函数类型
 // 所有的请求方法都可以传入泛型约束，并且约定返回的也是该类型
 export interface Axios {
-  interceptor: AxiosInterceptor
+  interceptors: AxiosInterceptor
+
+  defaults: AxiosRequestConfig
+
+  cancelToken?: CancelToken
 
   request<T = any>(config: AxiosRequestConfig): AxiosPromise<T>
 
@@ -90,10 +106,22 @@ export interface AxiosInstance extends Axios {
   <T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 }
 
+export interface AxiosStatic extends AxiosInstance {
+  create(config: AxiosRequestConfig): AxiosInstance
+
+  CancelToken: CancelTokenStatic
+  Cancel: CancelStatic
+  isCancel: (value: any) => boolean
+}
+
 // axios.interceptor有两个属性，request和response
 export interface AxiosInterceptor {
   request: InterceptorManager<AxiosRequestConfig>
   response: InterceptorManager<AxiosResponse>
+}
+
+export interface AxiosTransformer {
+  (data: any, headers?: any): any
 }
 
 // axios.interceptor.request(response)这两个函数分别管理响应和请求拦截
@@ -112,4 +140,57 @@ export interface ResolvedFn<T = any> {
 
 export interface RejectedFn {
   (error: any): any
+}
+
+export interface CancelToken {
+  // promise: Promise<string>
+  promise: Promise<Cancel>
+  reason?: Cancel
+
+  throwIfRequested(): void
+}
+
+export interface Canceler {
+  (reason?: string): void
+}
+
+// CancelToken类有构造函数,构造函数里传入一个CancelExecutor，
+// 这个executor在构造函数里被执行，需要传入一个Canceler，
+// 这个Canceler作为一个函数，接收一个取消的reason，
+// 在canceler函数被触发，如果reason不为空，resolve CancelToken类的Promise，
+// 这样就可以触发xhr.ts中的Promise.then
+
+// axios.get('/user/12345', {
+//   cancelToken: new CancelToken(function executor(c) {
+//     cancel = c;
+//   })
+// });
+// 上述调用实例中new CancelToken本质上时调用函数，必须传入参数
+// 所以不能 new CancelToken(Executer: excutor)
+// 而 function excutor(c) {} 本质为定义一个函数，因此c这里只是形参，不需要具体实现，
+// 当excutor函数被执行时才需要传入实参
+
+export interface CancelExecutor {
+  (canceler: Canceler): void
+}
+
+export interface CancelTokenSource {
+  token: CancelToken
+  cancel: Canceler
+}
+
+// CancelTokenStatic是CancelToken的类类型，CancelToken是实例类型，
+// 类类型包含构造函数和静态方法
+
+export interface CancelTokenStatic {
+  new (excutor: CancelExecutor): CancelToken
+  source(): CancelTokenSource
+}
+
+export interface Cancel {
+  message?: string
+}
+
+export interface CancelStatic {
+  new (message?: string): Cancel
 }

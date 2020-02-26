@@ -1,11 +1,24 @@
 import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
 import { parseHeaders } from '../helper/headers'
 import { AxiosError } from '../helper/error'
+import { isURLSameOrigin } from '../helper/url'
+import cookie from '../helper/cookie'
 
 // 创建 XMLHttpRequest
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
-    const { url, data = null, method = 'get', headers, responseType, timeout } = config
+    const {
+      url,
+      data = null,
+      method = 'get',
+      headers,
+      responseType,
+      timeout,
+      cancelToken,
+      withCredentials,
+      xsrfHeaderName,
+      xsrfCookieName
+    } = config
 
     const request = new XMLHttpRequest()
 
@@ -17,10 +30,21 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       request.timeout = timeout
     }
 
+    if (withCredentials) {
+      request.withCredentials = withCredentials
+      console.log('req', request)
+    }
+
+    if ((withCredentials || isURLSameOrigin(url!)) && xsrfCookieName && xsrfHeaderName) {
+      const xsrfVal = cookie.read(xsrfCookieName)
+      if (xsrfVal) {
+        headers[xsrfHeaderName] = xsrfVal
+      }
+    }
+
     request.open(method.toUpperCase(), url!, true)
 
     request.onreadystatechange = function handleLoad() {
-
       // readyState如果不是4代表请求没完成，没有处理的必要
       if (request.readyState !== 4) {
         return
@@ -57,7 +81,6 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     }
 
     Object.keys(headers).forEach(name => {
-
       // 不太清楚如果data为null但contentType有值会怎样，需要实验
       if (data === null && name.toLowerCase() === 'content-type') {
         delete headers[name]
@@ -65,6 +88,15 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         request.setRequestHeader(name, headers[name])
       }
     })
+
+    if (cancelToken) {
+      // 但promise没有变成resolved状态时，then是不会执行的
+      // 如何变成resolved状态查看CancelToken类
+      cancelToken.promise.then(reason => {
+        request.abort()
+        reject(reason)
+      })
+    }
 
     request.send(data)
 

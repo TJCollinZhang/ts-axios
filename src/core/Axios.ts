@@ -9,9 +9,15 @@ import {
 } from '../types'
 import dispatchRequest from './dispatchRequest'
 import InterceptorManager from './InterceptorManager'
+import mergeConfig from './mergeConfig'
 
 interface RequestPromiseNode {
   resolved: ResolvedFn | ((config: AxiosRequestConfig) => AxiosPromise)
+  rejected?: RejectedFn
+}
+
+interface PromiseChain<T> {
+  resolved: ResolvedFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
   rejected?: RejectedFn
 }
 
@@ -20,14 +26,16 @@ interface Interceptors {
   response: InterceptorManager<AxiosResponse>
 }
 
-export default class Axios {
+export default class Axios implements AxiosInterface {
   interceptors: Interceptors
+  defaults: AxiosRequestConfig
 
-  constructor() {
+  constructor(defaultConfig: AxiosRequestConfig) {
     this.interceptors = {
       request: new InterceptorManager<AxiosRequestConfig>(),
       response: new InterceptorManager<AxiosResponse>()
     }
+    this.defaults = defaultConfig
   }
 
   // 重载request方法，被重载的原因参考src/axios.ts
@@ -44,10 +52,11 @@ export default class Axios {
     } else {
       config = url
     }
+    config = mergeConfig(this.defaults, config)
 
     // 拦截器调用时注意，越先注册的拦截器越靠近请求本身，
     // 意味着请求拦截器越先注册越后调用，响应拦截器先注册先调用
-    const requestPromiseChain: RequestPromiseNode[] = [
+    const promiseChain: RequestPromiseNode[] = [
       {
         resolved: dispatchRequest,
         rejected: undefined
@@ -55,11 +64,11 @@ export default class Axios {
     ]
 
     this.interceptors.request.forEach(interceptor => {
-      requestPromiseChain.unshift(interceptor)
+      promiseChain.unshift(interceptor)
     })
 
     this.interceptors.response.forEach(interceptor => {
-      requestPromiseChain.push(interceptor)
+      promiseChain.push(interceptor)
     })
 
     // 注意这里传的泛型any
@@ -80,12 +89,11 @@ export default class Axios {
     // 但promise对象最终要被返回，要求符合AxiosPromise（继承自Promise<AxiosResponse<T>>）,
     // 所以这里的泛型只能为any
     let promise = Promise.resolve<any>(config)
-    while (requestPromiseChain.length) {
-      const { resolved, rejected } = requestPromiseChain.shift()!
-      promise.then(resolved, rejected)
+    while (promiseChain.length) {
+      const { resolved, rejected } = promiseChain.shift()!
+      promise = promise.then(resolved, rejected)
     }
     return promise
-    // return dispatchRequest(config!)
   }
 
   get(url: string, config?: AxiosRequestConfig): AxiosPromise {

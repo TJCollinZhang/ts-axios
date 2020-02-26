@@ -1,5 +1,7 @@
-import { isPlainObject } from './util'
+import { deepMerge, isPlainObject } from './util'
+import { Method } from '../types'
 
+// 传入的headers可能属性写法有大小写之分，normalize之后就没了
 function normalizeHeaderName(headers: any, normalizedName: string): void {
   if (!headers) {
     return
@@ -44,4 +46,32 @@ export function parseHeaders(headers: any) {
   })
 
   return parsed
+}
+
+// 将headers扁平化，例如
+// headers: {
+//   // common代表所有请求都要配置
+//   common: {
+//     Accept: 'application/json, text/plain, */*'
+//   },
+//   // post代表所有post请求需要
+//   post: {
+//     'Content-Type':'application/x-www-form-urlencoded'
+//   }
+// }
+// 变成
+// headers: {
+//   Accept: 'application/json, text/plain, */*',
+//   'Content-Type':'application/x-www-form-urlencoded'
+// }
+export function flattenHeaders(headers: any, method: Method) {
+  if (!headers) {
+    return headers
+  }
+  headers = deepMerge(headers.common || {}, headers[method] || {}, headers)
+  const propsToBeDeleted = ['delete', 'get', 'head', 'options', 'post', 'put', 'patch', 'common']
+  propsToBeDeleted.forEach(prop => {
+    delete headers[prop]
+  })
+  return headers
 }

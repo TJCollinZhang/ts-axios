@@ -1,9 +1,12 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const webpack = require('webpack')
+const cookieParser = require('cookie-parser')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const WebpackConfig = require('./webpack.config')
+
+require('./server2')
 
 const app = express()
 const compiler = webpack(WebpackConfig)
@@ -22,6 +25,7 @@ app.use(express.static(__dirname))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 
 const router = express.Router()
@@ -121,14 +125,76 @@ function registerExtendRouter() {
   })
 }
 
+function registerConfigRouter() {
+  router.post('/config/post', function (req, res) {
+    res.json(req.body)
+  })
+}
+
+function registerInterceptorRrouter() {
+  router.get('/interceptor/get', function (req, res) {
+    res.end('hello ')
+  })
+}
+
+function registerCancelRouter() {
+  router.get('/cancel/get', function (req, res) {
+    setTimeout(() => {
+      res.json('hello')
+    }, 1000)
+  })
+
+  router.post('/cancel/post', function (req, res) {
+    setTimeout(() => {
+      res.json(req.body)
+    }, 1000)
+  })
+}
+
+function registerMoreRouter() {
+  router.get('/more/get', (req, res) => {
+    res.json(req.cookies)
+  })
+
+  router.post('/more/post', function (req, res) {
+    const auth = req.headers.authorization
+    const [type, credentials] = auth.split(' ')
+    console.log('atob on server:', atob(credentials))
+    const [username, password] = atob(credentials).split(':').map(item => item.trim())
+    if (type === 'Basic' && username === 'chen' && password === '123456') {
+      res.json(req.body)
+    } else {
+      res.status(401)
+      res.end('UnAuthorization')
+    }
+  })
+
+  router.get('/more/304', function (req, res) {
+    res.status(304)
+    res.end()
+  })
+
+  router.get('/more/A', function (req, res) {
+    res.end('A')
+  })
+
+  router.get('/more/B', function (req, res) {
+    res.end('B')
+  })
+}
+
 registerSimpleRouter()
 registerBaseRouter()
 registerErrorRouter()
 registerExtendRouter()
+registerInterceptorRrouter()
+registerConfigRouter()
+registerCancelRouter()
+registerMoreRouter()
 
 app.use(router)
 
-const port = process.env.PORT || 8081
+const port = process.env.PORT || 8084
 module.exports = app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}, Ctrl+C to stop`)
 })

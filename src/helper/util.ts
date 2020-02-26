@@ -14,7 +14,29 @@ export function isPlainObject(val: any): val is Object {
 
 export function extend<T, U>(to: T, from: U): T & U {
   for (const key in from) {
-    (to as T & U)[key] = from[key] as any
+    ;(to as T & U)[key] = from[key] as any
   }
   return to as T & U
+}
+
+export function deepMerge(...objs: any[]): any {
+  const res = Object.create(null)
+  objs.forEach(obj => {
+    Object.keys(obj).forEach(key => {
+      const val = obj[key]
+      if (isPlainObject(val)) {
+        // 进行这一步判断的目的是怕res中已经有了其他配置拷贝过来的属性相同的值
+        // 例如 config1 = {a: {b:1 }} config2 = {a: {c: 2}} 这时需要将b,c合并而不是覆盖
+        if (isPlainObject(res[key])) {
+          res[key] = deepMerge(val, res[key])
+        } else {
+          res[key] = deepMerge(val)
+        }
+      } else {
+        res[key] = val
+      }
+    })
+  })
+
+  return res
 }
