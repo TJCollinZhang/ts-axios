@@ -59,17 +59,9 @@ export function buildURL(url: string, params?: any) {
   return url
 }
 
-const currentOrigin = resolveURL(window.location.href)
-
-export function isURLSameOrigin(requestURL: string): boolean {
-  const parsedOrigin = resolveURL(requestURL)
-  return (
-    currentOrigin.host === parsedOrigin.host && currentOrigin.protocol === parsedOrigin.protocol
-  )
-}
-
 // 巧妙利用a标签方法来获取url的origin
 const urlParsingNode = document.createElement('a')
+const currentOrigin = resolveURL(window.location.href)
 
 function resolveURL(requestURL: string): URLOrigin {
   urlParsingNode.setAttribute('href', requestURL)
@@ -78,4 +70,11 @@ function resolveURL(requestURL: string): URLOrigin {
     protocol,
     host
   }
+}
+
+export function isURLSameOrigin(requestURL: string): boolean {
+  const parsedOrigin = resolveURL(requestURL)
+  return (
+    currentOrigin.host === parsedOrigin.host && currentOrigin.protocol === parsedOrigin.protocol
+  )
 }
