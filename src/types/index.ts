@@ -29,6 +29,10 @@ export interface AxiosRequestConfig {
   xsrfHeaderName?: string
   xsrfCookieName?: string
 
+  // 上传和下载进度监控函数
+  onDownloadProgress?: (e: ProgressEvent) => void
+  onUploadProgress?: (e: ProgressEvent) => void
+
   transformRequest?: AxiosTransformer | AxiosTransformer[]
   transformResponse?: AxiosTransformer | AxiosTransformer[]
   // 如果没有这个字符串索引签名，则无法采取属性变量方式获取属性值

@@ -40,3 +40,7 @@ export function deepMerge(...objs: any[]): any {
 
   return res
 }
+
+export function isFormData(data: any): data is FormData {
+  return typeof data !== undefined && data instanceof FormData
+}
