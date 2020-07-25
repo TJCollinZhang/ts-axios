@@ -22,7 +22,7 @@ export default function mergeConfig(
   })
 
   // 需要进行深拷贝的属性
-  const objectProps = ['headers']
+  const objectProps = ['headers', 'auth']
   objectProps.forEach(prop => {
     strategies[prop] = deepMergeStrat
   })

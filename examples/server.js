@@ -5,6 +5,9 @@ const cookieParser = require('cookie-parser')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const WebpackConfig = require('./webpack.config')
+const mutipart = require('connect-multiparty')
+const path = require('path')
+const atob = require('atob')
 
 require('./server2')
 
@@ -34,6 +37,9 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 
+app.use(mutipart({
+  uploadDir: path.resolve(__dirname, 'accept-upload-file')
+}))
 
 const router = express.Router()
 
@@ -167,7 +173,8 @@ function registerMoreRouter() {
     const auth = req.headers.authorization
     const [type, credentials] = auth.split(' ')
     console.log('atob on server:', atob(credentials))
-    const [username, password] = atob(credentials).split(':').map(item => item.trim())
+		const [username, password] = atob(credentials).split(':').map(item => item.trim())
+		console.log(username, password)
     if (type === 'Basic' && username === 'chen' && password === '123456') {
       res.json(req.body)
     } else {
@@ -187,6 +194,11 @@ function registerMoreRouter() {
 
   router.get('/more/B', function (req, res) {
     res.end('B')
+	})
+	
+	router.post('/more/upload', function (req, res) {
+    console.log(req.body, req.files)
+    res.end('upload success!')
   })
 }
 

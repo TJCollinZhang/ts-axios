@@ -37,3 +37,5 @@ axios.get('/cancel/get', {
 setTimeout(() => {
 	cancel()
 }, 200)
+
+

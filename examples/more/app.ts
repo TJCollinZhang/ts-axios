@@ -1,25 +1,193 @@
 import axios from '../../src'
 import qs from 'qs'
+import 'nprogress/nprogress.css'
+import NProgress from 'nprogress'
+
 
 document.cookie = 'a=b'
 
-axios.get('/more/get').then(res => {
-  console.log(res)
-})
+// axios.get('/more/get').then(res => {
+//   console.log(res)
+// })
 
-axios.post('http://127.0.0.1:8088/more/server2', {}, {
-  withCredentials: true
+axios.post('/more/post', {
+	a: 1
+}, {
+	auth: {
+		username: 'chen',
+		password: '123456'
+	}
 }).then(res => {
-  console.log(res)
+	console.log('http auth success demo', res)
 })
 
-// xsrf test example
-
-const instance = axios.create({
-  xsrfCookieName: 'XSRF-TOKEN-D',
-  xsrfHeaderName: 'X-XSRF-TOKEN-D'
+axios.get('/more/304').then(res => {
+	console.log(res)
+}).catch(err => {
+	console.log(err.message)
 })
 
-instance.get('/more/get').then(res => {
-  console.log(res)
+
+axios.get('/more/304', {
+	validateStatus(status) {
+		return status >= 200 && status < 400
+	}
+}).then(res => {
+	console.log(res)
+}).catch(err => {
+	console.log(err.message)
 })
+
+// 自定义 params 的解析规则 demo
+axios.get('/more/get', {
+	params: new URLSearchParams('a=b&c=d')
+}).then(res => {
+	console.log(res)
+})
+
+axios.get('/more/get', {
+	params: {
+		a: 1,
+		b: 2,
+		c: ['a', 'b', 'c']
+	}
+}).then(res => {
+	console.log(res)
+})
+
+const instance2 = axios.create({
+	paramsSerializer(params) {
+		return qs.stringify(params, {
+			arrayFormat: 'brackets'
+		})
+	}
+})
+
+instance2.get('/more/get', {
+	params: {
+		a: 1,
+		b: 2,
+		c: ['a', 'b', 'c']
+	}
+}).then(res => {
+	console.log(res)
+})
+
+
+// custom baseURL demo
+const instance3 = axios.create({
+  baseURL: 'https://img.mukewang.com/'
+})
+
+instance3.get('5cc01a7b0001a33718720632.gif')
+instance3.get('https://img.mukewang.com/szimg/5becd5ad0001b89306000338-360-202.jpg')
+
+// axios.all axios.spread axios.getUri demo
+function getA() {
+  return axios.get('/more/A')
+}
+function getB() {
+  return axios.get('/more/B')
+}
+
+axios.all([getA(), getB()])
+  .then(axios.spread(function(resA, resB) {
+    console.log(resA.data)
+    console.log(resB.data)
+  }))
+
+axios.all([getA(), getB()])
+  .then(([resA, resB]) => {
+    console.log(resA.data)
+    console.log(resB.data)
+  })
+
+const fakeConfig = {
+  baseURL: 'https://www.baidu.com',
+  url: '/user/12345',
+  params: {
+    idClient: 1,
+    idTest: 2,
+    testString: 'thisIsATest'
+  }
+}
+
+console.log('axios.getUri result: ', axios.getUri(fakeConfig))
+
+
+// // xsrf test example
+
+// const instance = axios.create({
+//   xsrfCookieName: 'XSRF-TOKEN-D',
+//   xsrfHeaderName: 'X-XSRF-TOKEN-D'
+// })
+
+// instance.get('/more/get').then(res => {
+//   console.log(res)
+// })
+
+
+// function calculatePercentage(loaded: number, total: number) {
+//   return Math.floor(loaded * 10) / total
+// }
+
+// loadProgressBar()
+// function loadProgressBar() {
+//   const setupStartProgress = () => {
+//     instance.interceptors.request.use(config => {
+//       NProgress.start()
+//       return config
+//     })
+//   }
+
+//   const setupUpdateProgress = () => {
+//     const update = (e: ProgressEvent) => {
+//       console.log(e)
+//       NProgress.set(calculatePercentage(e.loaded, e.total))
+//     }
+//     instance.defaults.onDownloadProgress = update
+//     instance.defaults.onUploadProgress = update
+//   }
+
+//   const setupStopProgress = () => {
+//     instance.interceptors.response.use(response => {
+//       NProgress.done()
+//       return response
+//     }, error => {
+//       NProgress.done()
+//       return Promise.reject(error)
+//     })
+//   }
+
+//   setupStartProgress()
+//   setupUpdateProgress()
+//   setupStopProgress()
+// }
+
+// const downloadEl = document.getElementById('download')
+
+// const downloadFileURL = 'https://img.mukewang.com/5cc01a7b0001a33718720632.gif'
+
+// downloadEl.addEventListener('click', e => {
+//   instance.get(downloadFileURL)
+//     .then(res => {
+//       console.log(`download file success, data.length: ${res.data.length}, data.url: ${res.config.url}`)
+//     }).catch((err) => {
+// 			console.log('err',err)
+// 		});
+// })
+
+// const uploadEl = document.getElementById('upload')
+
+// uploadEl.addEventListener('click', e => {
+//   const data = new FormData()
+//   const fileEl = document.getElementById('file') as HTMLInputElement
+//   if (fileEl.files) {
+//     data.append('file', fileEl.files[0])
+//     instance.post('/more/upload', data)
+//       .then(() => {
+//         console.log('upload file success, you can see it on ./exapmles/accept-upload-file')
+//       })
+//   }
+// })
+
