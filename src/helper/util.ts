@@ -50,11 +50,3 @@ export function isFormData(data: any): data is FormData {
 export function isURLSearchParams(params: any): params is URLSearchParams {
   return typeof params !== undefined && params instanceof URLSearchParams
 }
-
-export function isAbsoluteURL(url: string): boolean {
-  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url)
-}
-
-export function combineURL(baseURL: string, relativeURL: string) {
-  return relativeURL ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '') : baseURL
-}

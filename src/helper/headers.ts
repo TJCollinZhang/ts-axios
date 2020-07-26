@@ -32,17 +32,15 @@ export function parseHeaders(headers: any) {
     return parsed
   }
   headers.split('\r\n').forEach((line: string) => {
-    let [key, value] = line.split(':')
+    let [key, ...values] = line.split(':')
     key = key.trim().toLowerCase()
     if (!key) {
       return
     }
 
     // value 不能直接trim，原因是空白行分隔后key为空字符串，value为undefined
-    if (value) {
-      value = value.trim()
-    }
-    parsed[key] = value
+    let val: string = values.join(':').trim()
+    parsed[key] = val
   })
 
   return parsed
