@@ -50,12 +50,12 @@ describe('helper: url', () => {
       })
 
       const params = { foo: 'baz' }
-      expect(buildURL('/foo', params, serializer)).toBe('/foo?foo=baz')
+      expect(buildURL('/foo', params, serializer)).toBe('/foo?foo=bar')
       expect(serializer).toBeCalled()
       expect(serializer).toBeCalledWith(params)
     })
     test('should support urlSearchParams', () => {
-      expect(buildURL('/foo?', new URLSearchParams('foo=bar'))).toBe('/foo?foo=bar')
+      expect(buildURL('/foo', new URLSearchParams('foo=bar'))).toBe('/foo?foo=bar')
     })
   })
   describe('isAbsoluteURL', () => {

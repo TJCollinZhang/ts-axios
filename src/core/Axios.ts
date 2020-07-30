@@ -43,7 +43,7 @@ export default class Axios implements AxiosInterface {
   // 因此request方法的实现需要兼容AxiosInterface类型定义，但不能和定义完全一致
   request(config: AxiosRequestConfig): AxiosPromise
   request(url: string, config?: AxiosRequestConfig): AxiosPromise
-  request(url: any, config?: AxiosRequestConfig): AxiosPromise {
+  request(url: any, config?: any): AxiosPromise {
     if (typeof url === 'string') {
       if (!config) {
         config = {}
@@ -53,6 +53,7 @@ export default class Axios implements AxiosInterface {
       config = url
     }
     config = mergeConfig(this.defaults, config)
+    config.method = config.method.toLowerCase()
 
     // 拦截器调用时注意，越先注册的拦截器越靠近请求本身，
     // 意味着请求拦截器越先注册越后调用，响应拦截器先注册先调用
