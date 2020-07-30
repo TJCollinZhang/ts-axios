@@ -71,9 +71,17 @@ export default function dispatchRequest(config: AxiosRequestConfig): AxiosPromis
   throwIfCancellationRequested(config)
 
   precessConfig(config)
-  return xhr(config).then(res => {
-    return transformResponseData(res)
-  })
+  return xhr(config)
+    .then(res => {
+      return transformResponseData(res)
+    })
+    .catch(e => {
+      if (e && e.response) {
+        e.response = transformResponseData(e.response)
+      }
+
+      return Promise.reject(e)
+    })
 }
 
 function precessConfig(config: AxiosRequestConfig): void {

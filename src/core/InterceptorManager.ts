@@ -7,7 +7,6 @@ interface Interceptor<T> {
 
 export default class InterceptorManager<T> {
   private interceptors: Array<Interceptor<T> | null>
-
   constructor() {
     this.interceptors = []
   }

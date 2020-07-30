@@ -11,8 +11,8 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
     const {
       url,
       data = null,
-      method = 'get',
-      headers,
+      method,
+      headers = {},
       responseType,
       timeout,
       cancelToken,
@@ -27,7 +27,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
 
     const request = new XMLHttpRequest()
 
-    request.open(method.toUpperCase(), url!, true)
+    request.open(method!.toUpperCase(), url!, true)
 
     configureRequest()
     addEvents()
@@ -42,7 +42,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       } else {
         reject(
           new AxiosError(
-            `Request failed width status code ${response.status}`,
+            `Request failed with status code ${response.status}`,
             config,
             null,
             request,
@@ -90,7 +90,8 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         const responseHeaders = parseHeaders(request.getAllResponseHeaders())
 
         // responseType如果为text，response为""，否则responseText为null,所以data要分条件取值
-        const responseData = responseType !== 'text' ? request.response : request.responseText
+        const responseData =
+          responseType && responseType !== 'text' ? request.response : request.responseText
         const response: AxiosResponse = {
           data: responseData,
           status: request.status,
@@ -108,7 +109,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
       }
 
       request.ontimeout = function handleTime() {
-        reject(new AxiosError(`Timout of ${timeout} ms exceeded`, config, 'ECONNABORTED', request))
+        reject(new AxiosError(`Timeout of ${timeout} ms exceeded`, config, 'ECONNABORTED', request))
       }
     }
 
@@ -120,7 +121,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         }
 
         if (auth) {
-          headers['authorization'] = `Basic ${btoa(`${auth.username} : ${auth.password}`)}`
+          headers['authorization'] = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
         }
       }
 

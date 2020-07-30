@@ -66,7 +66,7 @@ export default function mergeConfig(
       return customVal
     } else if (isPlainObject(defaultVal)) {
       return deepMerge(defaultVal)
-    } else if (typeof defaultVal !== 'undefined') {
+    } else {
       return defaultVal
     }
   }

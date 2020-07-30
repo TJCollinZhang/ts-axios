@@ -121,7 +121,7 @@ export interface AxiosClassStatic {
 
 // AxiosStatic 是类类型Axios和函数类型AxiosInstance的混合类型，也是调用时最后返回的Axios类型
 export interface AxiosStatic extends AxiosInstance {
-  create(config: AxiosRequestConfig): AxiosInstance
+  create(config?: AxiosRequestConfig): AxiosInstance
 
   CancelToken: CancelTokenStatic
   Cancel: CancelStatic
